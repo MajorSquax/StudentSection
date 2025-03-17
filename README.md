@@ -29,10 +29,20 @@ Before getting started, ensure you have the following installed on your machine:
    Note: use _set_ if on Windows
    
 5. **Start the Backend**:
+  Create the following file studentsection.service in your /lib/systemd/system/ folder
    ```sh
-   python app.py
+   [Unit]
+   Description=Gunicorn instance to serve studentsection flask app
+   After=network.target
+   [Service]
+   User=studentsection
+   Group=www-data
+   WorkingDirectory=/StudentSection
+   Environment="PATH=/StudentSection/venv/bin"
+   ExecStart=/StudentSection/venv/bin/gunicorn --workers 3 --error-logfile /var/log/studentsection/gunicorn-error.log --access-logfile /var/log/studentsection/gunicorn-access.log --bind unix:studentsection.sock -m 007 wsgi:app
+   [Install]
+   WantedBy=multi-user.target
    ```
-
 ### 2️⃣ Set Up the Frontend
 1. **Navigate to the Frontend Directory**:
    ```sh
@@ -46,7 +56,6 @@ Before getting started, ensure you have the following installed on your machine:
    ```sh
    npm start
    ```
-
 ## Final Steps
 - Your **backend** should now be running on `http://127.0.0.1:5000`
 - Your **frontend** should be accessible at `http://localhost:3000`
