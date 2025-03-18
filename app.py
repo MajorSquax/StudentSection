@@ -15,7 +15,6 @@ from datetime import timedelta
 from schedule_parser import parse_html_schedule
 
 app = Flask(__name__)
-app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['SESSION_COOKIE_SECURE'] = False  # if you're on HTTP in dev
 CORS(app, supports_credentials=True)
 
@@ -24,6 +23,8 @@ app.secret_key = os.getenv('SECRET_KEY', default='BAD_SECRET_KEY')
 # Configure Redis for storing the session data on the server-side
 app.config['SESSION_TYPE'] = 'redis'
 app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=6)
+app.config['SESSION_SERIALIZATION_FORMAT'] = 'json'
 app.config['SESSION_USE_SIGNER'] = True
 app.config['SESSION_REDIS'] = redis.from_url('redis://127.0.0.1:6379')
 app.config['SESSION_COOKIE_SECURE'] = True # uses https or not
@@ -91,7 +92,7 @@ def get_mock_token():
 # If 'School' is missing, None, or an empty string, set it to 'public'.
 # Check if the user already exists before creating a new user.
 # ------------------------------
-@app.route('/users/register', methods=['POST'])
+@app.route('/flaskapi/users/register', methods=['POST'])
 def create_user():
     data = request.get_json()
     
@@ -124,37 +125,47 @@ def create_user():
 # Log in a user by email and password, or get the current user's session data.
 # once authenticated, store the user's ID in the Flask session.
 # ------------------------------
-@app.route('/users/login', methods=['POST', 'GET'])
+@app.route('/flaskapi/users/login', methods=['POST'])
 def login():
     data = request.get_json()
     email = data.get("email")
     password = data.get("password")
-    #Define Session Variables
-    global sessionid
-    global username
 
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
 
-    # Look up the user by email and password (iIMPLEMENT COMPARING HASHED PASSWORDS)
+    # Look up the user by email and password
     user = users_collection.find_one({"email": email, "password": password})
-    
     if not user:
         return jsonify({"error": "Invalid email or password"}), 401
 
-    # Once authenticated:
+    cursor = 0
+    keys = r.scan(cursor=cursor, match="session:*")
+    for key in keys[1]:
+        session_data=r.get(key)
+        if email in session_data:
+            r.delete(key)
+
+    # Create a new session
     session['user_id'] = str(user["_id"])
-    session['email']   = user["email"]
-    session['school']  = user.get("School")
+    session['email'] = user["email"]
+    session['school'] = user.get("School")
 
     return jsonify({"message": "Login successful"}), 200
 
+#Pull the new session for later use
+def get_user_session(useremail):
+    sessions=r.scan(cursor=0, match="session:*")
+    for newsession in sessions[1]:
+        session_data=r.get(newsession)
+        if useremail in session_data:
+            return newsession
 
 # ------------------------------
 # Endpoint: POST /logout
 # Clear the session data to log out the user.
 # ------------------------------
-@app.route('/logout', methods=['POST'])
+@app.route('/flaskapi/logout', methods=['POST'])
 def logout():
     session.clear()
     return jsonify({"message": "Logged out successfully"}), 200
@@ -164,7 +175,7 @@ def logout():
 # Endpoint: GET /users/me
 # Get the current user's session data, if logged in.
 # ------------------------------
-@app.route('/users/me', methods=['GET'])
+@app.route('/flaskapi/users/me', methods=['GET'])
 def get_current_user():
     if 'user_id' not in session:
         return jsonify({"error": "Not logged in"}), 401
@@ -181,7 +192,7 @@ def get_current_user():
 # Return the user's profile from MongoDB, 
 # verifying that the user_id in the URL matches the session user.
 # ------------------------------
-@app.route('/users/<string:user_id>/profile', methods=['GET'])
+@app.route('/flaskapi/users/<string:user_id>/profile', methods=['GET'])
 def get_profile(user_id):
     # 1) Check if user_id is in the Flask session:
     if 'user_id' not in session:
@@ -207,7 +218,7 @@ def get_profile(user_id):
 # Endpoint: PUT /users/<string:user_id>/profile
 # Update user fields in their MongoDB profile, e.g. phone, school_name, etc.
 # ------------------------------
-@app.route('/users/<string:user_id>/profile', methods=['PUT'])
+@app.route('/flaskapi/users/<string:user_id>/profile', methods=['PUT'])
 def update_profile(user_id):
     data = request.get_json()
     # Accept any fields that are safe to update. For example:
@@ -236,7 +247,7 @@ def update_profile(user_id):
 # Endpoint: POST /tickets
 # Create a ticket listing using schedule event details.
 # ------------------------------
-@app.route('/tickets', methods=['POST'])
+@app.route('/flaskapi/tickets', methods=['POST'])
 def post_ticket():
     if 'user_id' not in session:
         return jsonify({"error": "Not authenticated"}), 401
@@ -284,7 +295,7 @@ def post_ticket():
 # Endpoint: GET /tickets
 # List all available ticket listings (public endpoint)
 # ------------------------------
-@app.route('/tickets', methods=['GET'])
+@app.route('/flaskapi/tickets', methods=['GET'])
 def list_tickets():
     tickets_cursor = tickets_collection.find({"status": "available"})
     tickets = []
@@ -312,7 +323,7 @@ def list_tickets():
 # Endpoint: POST /tickets/<ticket_id>/purchase
 # Purchase a ticket – places a Stripe hold and (via placeholder) transfers the ticket.
 # ------------------------------
-@app.route('/tickets/<ticket_id>/purchase', methods=['POST'])
+@app.route('/flaskapi/tickets/<ticket_id>/purchase', methods=['POST'])
 def purchase_ticket(ticket_id):
     if 'user_id' not in session:
         return jsonify({"error": "Not authenticated"}), 401
@@ -397,7 +408,7 @@ def purchase_ticket(ticket_id):
 # Upload a schedule from an HTML file, a URL, or a manually created schedule.
 # Ensures that year and event_type are present; school_name is now optional (Defaults to "Public").
 # ------------------------------
-@app.route('/schedule/upload', methods=['POST'])
+@app.route('/flaskapi/schedule/upload', methods=['POST'])
 def upload_schedule():
     log_mongo_debug(
         level="INFO",
@@ -578,7 +589,7 @@ def upload_schedule():
 # Retrieve all schedules grouped by school, returning "public" schedules for everyone,
 # and also the user's school (if logged in).
 # ------------------------------
-@app.route('/schedule/all', methods=['GET'])
+@app.route('/flaskapi/schedule/all', methods=['GET'])
 def retrieve_all_schedules():
     try:
         # If the user is logged in, session['school'] is set
@@ -629,7 +640,7 @@ def retrieve_all_schedules():
 # Retrieve schedules based on filters: school name and event type,
 # but always includes "public" schedules plus the user's own school if logged in.
 # ------------------------------
-@app.route('/schedule/retrieve', methods=['GET'])
+@app.route('/flaskapi/schedule/retrieve', methods=['GET'])
 def retrieve_schedule():
     try:
         user_school = session.get("school")
