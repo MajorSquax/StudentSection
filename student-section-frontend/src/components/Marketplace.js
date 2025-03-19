@@ -12,13 +12,13 @@ function Marketplace() {
   }, []);
 
   const fetchListings = () => {
-    axios.get('http://localhost:5000/listings')
+    axios.get('https://studentsection.xyz/flaskapi/listings')
       .then(res => setListings(res.data.listings))
       .catch(err => console.error(err));
   };
 
   const handlePurchase = (listingId) => {
-    axios.post('http://localhost:5000/transactions/purchase', {
+    axios.post('https://studentsection.xyz/flaskapi/transactions/purchase', {
       listing_id: listingId,
       buyer_id: userId,
     })
