@@ -27,7 +27,7 @@ const LoginPage = ({ setUser }) => {
         }
   
         // 1) Register user
-        await axios.post('http://localhost:5000/users/register', {
+        await axios.post('https://studentsection.xyz/flaskapi/users/register', {
           email,
           password,
           FirstName: firstName,
@@ -38,13 +38,13 @@ const LoginPage = ({ setUser }) => {
         }, { withCredentials: true });
   
         // 2) Immediately log in
-        await axios.post('http://localhost:5000/users/login', {
+        await axios.post('https://studentsection.xyz/flaskapi/users/login', {
           email,
           password,
         }, { withCredentials: true });
   
         // 3) Fetch user info
-        const meResponse = await axios.get('http://localhost:5000/users/me', {
+        const meResponse = await axios.get('https://studentsection.xyz/flaskapi/users/me', {
           withCredentials: true,
         });
         setUser(meResponse.data);
@@ -59,12 +59,12 @@ const LoginPage = ({ setUser }) => {
         }
   
         // 1) Log in
-        await axios.post('http://localhost:5000/users/login', { email, password }, {
+        await axios.post('https://studentsection.xyz/flaskapi/users/login', { email, password }, {
           withCredentials: true,
         });
   
         // 2) Fetch user info
-        const meResponse = await axios.get('http://localhost:5000/users/me', {
+        const meResponse = await axios.get('https://studentsection.xyz/flaskapi/users/me', {
           withCredentials: true,
         });
         setUser(meResponse.data);
