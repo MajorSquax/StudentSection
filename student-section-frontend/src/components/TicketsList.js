@@ -13,7 +13,7 @@ function TicketsList({ location }) {
   }, []);
 
   const fetchTickets = () => {
-    axios.get('http://localhost:5000/tickets', { withCredentials: true })
+    axios.get('https://studentsection.xyz/flaskapi/tickets', { withCredentials: true })
       .then(res => {
         let fetched = res.data.tickets;
         // Filter tickets if event_filter is provided (by event_name and/or event_date)
@@ -26,7 +26,7 @@ function TicketsList({ location }) {
   };
 
   const purchaseTicket = (ticketId) => {
-    axios.post(`http://localhost:5000/tickets/${ticketId}/purchase`, {}, { withCredentials: true })
+    axios.post(`https://studentsection.xyz/flaskapi/tickets/${ticketId}/purchase`, {}, { withCredentials: true })
       .then(res => {
         setMessage(res.data.message);
         fetchTickets();
