@@ -139,7 +139,7 @@ function ScheduleBuilder() {
 
     const htmlString = buildHtmlSchedule();
     try {
-      const response = await axios.post('http://localhost:5000/schedule/upload', {
+      const response = await axios.post('https://studentsection.xyz/flaskapi/schedule/upload', {
         custom_schedule: htmlString,
       });
       setMessage(response.data.message || 'Schedule uploaded successfully!');
@@ -334,7 +334,7 @@ export default function UploadSchedule() {
         const formData = new FormData();
         formData.append('file', scheduleFile);
 
-        const response = await axios.post('http://localhost:5000/schedule/upload', formData, {
+        const response = await axios.post('https://studentsection.xyz/flaskapi/schedule/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         handleServerResponse(response);
@@ -342,13 +342,13 @@ export default function UploadSchedule() {
       // If they provided a direct URL
       else if (scheduleUrl) {
         payload = { url: scheduleUrl };
-        const response = await axios.post('http://localhost:5000/schedule/upload', payload);
+        const response = await axios.post('https://studentsection.xyz/flaskapi/schedule/upload', payload);
         handleServerResponse(response);
       }
       // If we have customSchedule
       else if (customSchedule) {
         payload = { custom_schedule: customSchedule };
-        const response = await axios.post('http://localhost:5000/schedule/upload', payload);
+        const response = await axios.post('https://studentsection.xyz/flaskapi/schedule/upload', payload);
         handleServerResponse(response);
       }
     } catch (err) {
@@ -402,7 +402,7 @@ export default function UploadSchedule() {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/schedule/upload', {
+      const response = await axios.post('https://studentsection.xyz/flaskapi/schedule/upload', {
         custom_schedule: updatedSchedule,
       });
       setMessage(response.data.message);
