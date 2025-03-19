@@ -21,7 +21,7 @@ function PostTicket() {
   const handleSubmit = (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:5000/tickets", formData, { withCredentials: true })
+      .post("https://studentsection.xyz/flaskapi/tickets", formData, { withCredentials: true })
       .then((res) => {
         setMessage(res.data.message);
       })
