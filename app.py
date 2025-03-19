@@ -476,6 +476,39 @@ def post_ticket():
         "ticket_id": str(result.inserted_id)
     }), 201
 
+# ------------------------------
+# Endpoint: GET /tickets
+# List all available ticket listings (public endpoint)
+# ------------------------------
+@app.route('/tickets/mine', methods=['GET'])
+def get_my_tickets():
+    """
+    Returns a list of the logged-in user's tickets from MongoDB.
+    Uses session-based authentication.
+    """
+    if 'user_id' not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    user_id = session['user_id']
+    # Query all tickets where seller_id matches the user's ObjectId
+    tickets_cursor = tickets_collection.find({"seller_id": ObjectId(user_id)})
+
+    # Convert the cursor into a list of dictionaries we can JSON-ify
+    user_tickets = []
+    for doc in tickets_cursor:
+        # Convert ObjectIds or datetimes to strings if desired
+        doc['_id'] = str(doc['_id'])
+        doc['seller_id'] = str(doc['seller_id'])
+        if 'created_at' in doc and isinstance(doc['created_at'], datetime):
+            doc['created_at'] = doc['created_at'].isoformat()
+        # same for event_date if it’s a datetime
+        if 'event_date' in doc and isinstance(doc['event_date'], datetime):
+            doc['event_date'] = doc['event_date'].isoformat()
+
+        user_tickets.append(doc)
+
+    return jsonify({"tickets": user_tickets}), 200
+
 
 # ------------------------------
 # Endpoint: GET /tickets
