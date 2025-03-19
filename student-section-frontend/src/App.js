@@ -14,7 +14,7 @@ function App() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/users/me", { withCredentials: true })
+      .get("https://studentsection.xyz/flaskapi/users/me", { withCredentials: true })
       .then((res) => {
         setUser(res.data.user);
       })
