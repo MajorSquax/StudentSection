@@ -54,6 +54,9 @@ function ProfilePage() {
         if (loadedProfile.School === 'University of Cincinnati') {
           setShowUcLogin(true);
         }
+        else if (loadedProfile.School === 'UC'){
+          setShowUcLogin(true);
+        }
       })
       .catch((err) => {
         console.error(err);
