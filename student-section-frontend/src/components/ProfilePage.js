@@ -50,11 +50,9 @@ function ProfilePage() {
           ...prev,
           ...loadedProfile,
         }));
-        // Automatically show UC fields if the loaded School is "University of Cincinnati"
-        if (loadedProfile.School === 'University of Cincinnati') {
-          setShowUcLogin(true);
-        }
-        else if (loadedProfile.School === 'UC'){
+        // Normalize the School value for comparison
+        const schoolName = loadedProfile.School.trim().toLowerCase();
+        if (schoolName === 'university of cincinnati' || schoolName === 'uc') {
           setShowUcLogin(true);
         }
       })
