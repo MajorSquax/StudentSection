@@ -18,7 +18,7 @@ const HomePage = ({ user, setUser }) => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/users/me', {
+        const response = await axios.get('https://studentsection.xyz/flaskapi/users/me', {
           withCredentials: true,
         });
         setUser(response.data); // Set the user data in the parent component
@@ -44,7 +44,7 @@ const HomePage = ({ user, setUser }) => {
         }
 
         // 1) Register user
-        await axios.post('http://localhost:5000/users/register', {
+        await axios.post('https://studentsection.xyz/flaskapi/users/register', {
           email,
           password,
           FirstName: firstName,
@@ -55,7 +55,7 @@ const HomePage = ({ user, setUser }) => {
         }, { withCredentials: true });
 
         // 2) Immediately log in
-        await axios.post('http://localhost:5000/users/login', {
+        await axios.post('https://studentsection.xyz/flaskapi/users/login', {
           email,
           password,
         }, { withCredentials: true });
@@ -67,13 +67,13 @@ const HomePage = ({ user, setUser }) => {
         }
 
         // 1) Log in
-        await axios.post('http://localhost:5000/users/login', { email, password }, {
+        await axios.post('https://studentsection.xyz/flaskapi/users/login', { email, password }, {
           withCredentials: true,
         });
       }
 
       // 3) Fetch user info
-      const meResponse = await axios.get('http://localhost:5000/users/me', {
+      const meResponse = await axios.get('https://studentsection.xyz/flaskapi/users/me', {
         withCredentials: true,
       });
       setUser(meResponse.data);
@@ -103,7 +103,7 @@ const HomePage = ({ user, setUser }) => {
           <button
             className="btn btn-danger"
             onClick={async () => {
-              await axios.post('http://localhost:5000/logout', {}, { withCredentials: true });
+              await axios.post('https://studentsection.xyz/flaskapi/logout', {}, { withCredentials: true });
               setUser(null); // Clear the user state
             }}
           >
