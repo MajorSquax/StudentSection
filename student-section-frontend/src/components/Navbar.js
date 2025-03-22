@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import Logo from '../media/StudentSectionTransparent.png';
@@ -6,10 +6,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Navbar = ({ user, setUser }) => {
   const navigate = useNavigate();
+  const [hamburgerOpen, setHamburgerOpen] = useState(false);
 
   const onLogoutClick = async () => {
     try {
-      await axios.post("https://studentsection.xyz/flaskapi/logout", {}, {
+      await axios.post("http://localhost:5000/logout", {}, {
         withCredentials: true,
       });
       setUser(null);
@@ -17,7 +18,7 @@ const Navbar = ({ user, setUser }) => {
       console.error("Error logging out:", err);
     }
   };
-  
+
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <div className="container-fluid">
@@ -27,13 +28,18 @@ const Navbar = ({ user, setUser }) => {
         </Link>
 
         {/* Toggle Button for Mobile */}
-        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-          aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button
+          className="navbar-toggler"
+          type="button"
+          onClick={() => setHamburgerOpen(!hamburgerOpen)}
+          aria-expanded={hamburgerOpen}
+          aria-label="Toggle navigation"
+        >
           <span className="navbar-toggler-icon"></span>
         </button>
 
         {/* Navbar Links */}
-        <div className="collapse navbar-collapse" id="navbarNav">
+        <div className={`collapse navbar-collapse ${hamburgerOpen ? 'show' : ''}`} id="navbarNav">
           <ul className="navbar-nav ms-auto">
             <li className="nav-item">
               <Link className="nav-link" to="/marketplace">Marketplace</Link>
