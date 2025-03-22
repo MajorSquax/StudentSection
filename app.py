@@ -132,6 +132,16 @@ def create_user():
 # ------------------------------
 @app.route('/flaskapi/users/login', methods=['POST'])
 def login():
+    # Check if the user is already logged in
+    if 'user_id' in session:
+        return jsonify({
+            "message": "User already logged in",
+            "user_id": session.get("user_id"),
+            "email": session.get("email"),
+            "school": session.get("school")
+        }), 200
+
+    # Proceed with login if no active session
     data = request.get_json()
     email = data.get("email")
     password = data.get("password")
