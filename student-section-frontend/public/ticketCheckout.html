@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout for [Game Name]</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .game-info, .checkout-summary {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .checkout-summary {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .btn {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn.cancel {
+            background-color: #e74c3c;
+        }
+
+        .timer {
+            font-weight: bold;
+            color: #e74c3c; /* Red color for timer */
+        }
+    </style>
+    <script>
+        // Countdown timer function
+        function startTimer(duration, display) {
+            let timer = duration, minutes, seconds;
+            const interval = setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    clearInterval(interval);
+                    display.textContent = "Time is up!";
+                    // Optionally, disable the purchase button or redirect
+                }
+            }, 1000);
+        }
+
+        window.onload = function () {
+            const tenMinutes = 60 * 10, // 10 minutes in seconds
+                display = document.querySelector('#time');
+            startTimer(tenMinutes, display);
+        };
+    </script>
+</head>
+<body>
+
+    <h1>Checkout for [Game Name]</h1>
+
+    <div class="game-info">
+        <h2>Game Details</h2>
+        <p>Date: [Game Date]</p>
+        <p>Time: [Game Time]</p>
+        <p>Opponent: [Opponent Name]</p>
+        <p>Order #: [Generated Order #]</p>
+        <p>Status: Ticket reserved for <span id="time" class="timer">10:00</span> minutes</p>
+    </div>
+
+    <div class="checkout-summary">
+        <h2>Order Summary</h2>
+        <p>Ticket Price: $[

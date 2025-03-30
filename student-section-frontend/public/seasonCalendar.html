@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2024 Cincinnati Football Home Schedule</title>
+    <style>
+       /* Ribbon styling */
+.ribbon {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #d1181e; /* UC red color */
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000; /* Ensure it stays on top */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Title styling */
+.ribbon-title {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.ribbon-title:hover {
+    text-decoration: underline;
+}
+
+/* Dropdown button styling */
+.dropdown-button {
+    background-color: #d1181e;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.dropdown-button:hover {
+    background-color: #a51418; /* Darker red on hover */
+}
+
+/* Dropdown content (hidden by default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {
+    background-color: #ddd;
+}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            max-width: 800px;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        td {
+            background-color: #f9f9f9;
+        }
+
+        .btn-view-tickets {
+            background-color: #e74c3c;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-view-tickets:hover {
+            background-color: #c0392b;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            th, td {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+  <!-- Ribbon at the top of the page -->
+<div class="ribbon">
+    <!-- Centered title linking to seasonCalendar.html -->
+    <a href="seasonCalendar.html" class="ribbon-title">StudentSection</a>
+    
+    <!-- Right-aligned dropdown button -->
+    <div class="dropdown">
+        <button class="dropdown-button">name@mail.uc.edu</button>
+        <div class="dropdown-content">
+            <a href="ProfilePage.html">Account Settings</a>
+            <a href="seasonCalendar.html">Manage Tickets</a>
+            <a href="Login.html">Logout</a>
+        </div>
+    </div>
+</div>
+    <h1>2024 Cincinnati Football Home Schedule</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Opponent</th>
+                <th>Location</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Aug 31 (Sat)</td>
+                <td>2:30 PM</td>
+                <td>Towson</td>
+                <td>Nippert Stadium</td>
+                <td><a href="gameListing.html?game=Towson" class="btn-view-tickets">View Tickets</a></td>
+            </tr>
+            <tr>
+                <td>Sep 7 (Sat)</td>
+                <td>Noon</td>
+                <td>Pittsburgh</td>
+                <td>Nippert Stadium</td>
+                <td><a href="gameListing.html?game=Pittsburgh" class="btn-view-tickets">View Tickets</a></td>
+            </tr>
+            <tr>
+                <td>Sep 21 (Sat)</td>
+                <td>12:00 PM</td>
+                <td>Houston</td>
+                <td>Nippert Stadium</td>
+                <td><a href="gameListing.html?game=Houston" class="btn-view-tickets">View Tickets</a></td>
+            </tr>
+            <tr>
+                <td>Oct 19 (Sat)</td>
+                <td>12 p.m. ET</td>
+                <td>Arizona State</td>
+                <td>Nippert Stadium</td>
+                <td><a href="gameListing.html?game=Arizona%20State" class="btn-view-tickets">View Tickets</a></td>
+            </tr>
+            <tr>
+                <td>Nov 9 (Sat)</td>
+                <td>Noon</td>
+                <td>West Virginia</td>
+                <td>Nippert Stadium</td>
+                <td><a href="gameListing.html?game=West%20Virginia" class="btn-view-tickets">View Tickets</a></td>
+            </tr>
+            <tr>
+                <td>Nov 30 (Sat)</td>
+                <td>TBD</td>
+                <td>TCU</td>
+                <td>Nippert Stadium</td>
+                <td><a href="gameListing.html?game=TCU" class="btn-view-tickets">View Tickets</a></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
