@@ -11,6 +11,7 @@ function ProfilePage() {
   });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [attendance, setAttendance] = useState([]); // new state for attendance records
 
   // For UC login section toggle
   const [showUcLogin, setShowUcLogin] = useState(false);
@@ -62,7 +63,7 @@ function ProfilePage() {
       });
   }, [userId]);
 
-  // 3) Fetch the current user's tickets (as seller) once userId is available
+  // 3) Fetch the current user's tickets (as seller or buyer) once userId is available
   useEffect(() => {
     if (!userId) return;
     axios
@@ -73,6 +74,20 @@ function ProfilePage() {
       .catch((err) => {
         console.error(err);
         setError(err.response?.data?.error || 'Error loading tickets.');
+      });
+  }, [userId]);
+
+  // 4) New: Fetch the events the user is attending from the /attendance endpoint
+  useEffect(() => {
+    if (!userId) return;
+    axios
+      .get('https://studentsection.xyz/flaskapi/attendance', { withCredentials: true })
+      .then((res) => {
+        setAttendance(res.data.attendance || []);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err.response?.data?.error || 'Error loading attendance records.');
       });
   }, [userId]);
 
@@ -139,28 +154,6 @@ function ProfilePage() {
       });
   };
 
-  // Confirm a pending ticket sale (seller confirms the transfer)
-  const handleConfirm = (ticketId) => {
-    setMessage('');
-    setError('');
-    axios
-      .post(`https://studentsection.xyz/flaskapi/tickets/${ticketId}/purchase/confirm`, {}, { withCredentials: true })
-      .then((res) => {
-        setMessage('Ticket purchase confirmed successfully!');
-        // Optionally include confirmation code:
-        // const confirmationCd = res.data.confirmationCd;
-        // setMessage(`Ticket purchase confirmed! Confirmation code: ${confirmationCd}`);
-        // Update ticket status to 'sold' in local state
-        setMyTickets((prevTickets) =>
-          prevTickets.map((t) => (t._id === ticketId ? { ...t, status: 'sold' } : t))
-        );
-      })
-      .catch((err) => {
-        console.error(err);
-        setError(err.response?.data?.error || 'Error confirming ticket.');
-      });
-  };
-
   return (
     <div style={{ maxWidth: '500px', margin: '40px auto' }}>
       <h2>My Profile</h2>
@@ -185,6 +178,7 @@ function ProfilePage() {
             className="form-control"
             value={profile.School}
             onChange={handleChange}
+            disabled
           />
         </div>
         <div className="mb-3">
@@ -237,31 +231,46 @@ function ProfilePage() {
         </div>
       )}
 
-      {/* Display the user's tickets and pending sales */}
+      {/* Display the user's tickets */}
       <hr />
       <h3>My Tickets</h3>
       {myTickets.length === 0 ? (
         <p>No tickets found.</p>
       ) : (
         <ul>
-          {myTickets.map((ticket) => (
-            <li key={ticket._id}>
-              <strong>{ticket.event_name}</strong>
+          {myTickets.map((ticket) => {
+            // For purchased tickets, display status as "bought" if the logged-in user is the buyer and the status is "sold"
+            let displayStatus = ticket.status;
+            if (ticket.buyer_id && ticket.buyer_id === userId && ticket.status === 'sold') {
+              displayStatus = 'bought';
+            }
+            return (
+              <li key={ticket._id}>
+                <strong>{ticket.event_name}</strong>
+                <br />
+                Date: {new Date(ticket.event_date).toLocaleString()}
+                <br />
+                Status: {displayStatus}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {/* New Section: Display the events the user is attending */}
+      <hr />
+      <h3>Events I'm Attending</h3>
+      {attendance.length === 0 ? (
+        <p>No attendance records found.</p>
+      ) : (
+        <ul>
+          {attendance.map((record) => (
+            <li key={record._id}>
+              <strong>{record.event_name}</strong>
               <br />
-              Date: {new Date(ticket.event_date).toLocaleString()}
+              Date: {new Date(record.event_date).toLocaleString()}
               <br />
-              Status: {ticket.status}
-              {ticket.status === 'pending' && (
-                <>
-                  <br />
-                  <button 
-                    onClick={() => handleConfirm(ticket._id)} 
-                    className="btn btn-success btn-sm"
-                  >
-                    Confirm Sale
-                  </button>
-                </>
-              )}
+              Venue: {record.venue}
             </li>
           ))}
         </ul>
