@@ -41,12 +41,17 @@ const Navbar = ({ user, setUser }) => {
         {/* Navbar Links */}
         <div className={`collapse navbar-collapse ${hamburgerOpen ? 'show' : ''}`} id="navbarNav">
           <ul className="navbar-nav ms-auto">
-            <li className="nav-item">
-              <Link className="nav-link" to="/marketplace">Marketplace</Link>
-            </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/uploadschedule">Upload Schedule</Link>
-            </li>
+            {user?.school !== "public" && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/marketplace">Marketplace</Link>
+                </li>
+            )}
+            {/* Only show Upload Schedule link if user is an Admin */}
+            {user?.role === "Admin" && (
+              <li className="nav-item">
+                <Link className="nav-link" to="/uploadschedule">Upload Schedule</Link>
+              </li>
+            )}
             <li className="nav-item">
               <Link className="nav-link" to="/">Calendar</Link>
             </li>
