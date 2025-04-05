@@ -138,10 +138,33 @@ def transfer_ticket_initialize(ticket, buyer):
     if response.status_code == 200:
         data = response.json()
         # Expected fields: transferId and url as defined in the mock response
-        return True, data.get("transferId"), data.get("url")
+        return True, data.get("transferId"), data.get("url"), data.get("confirmationCd")
     else:
         # Optionally, log response details for debugging
         return False, None, None
+
+def transfer_ticket_cancel(confirmation_code):
+    """
+    Cancel the ticket transfer by calling the mock Paciolan cancel endpoint.
+    """
+    url = f"{MOCK_API_BASE_URL}/v1/tickets/transfer/{confirmation_code}?distributorCode={DISTRIBUTOR_CODE}"
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Authorization": get_auth_token(),
+        "PAC-Channel-Code": PAC_CHANNEL_CODE,
+        "PAC-Application-ID": PAC_APP_ID,
+        "PAC-API-Key": PAC_API_KEY,
+        "Request-ID": generate_request_id(),
+        "Content-Type": "application/json"
+    }
+    # Send DELETE request to cancel the transfer
+    response = requests.delete(url, headers=headers)
+    if response.status_code == 200 or response.status_code == 204:
+        return True
+    else:
+        # Optionally log response for debugging if needed
+        return False
+
 
 def transfer_ticket_accept(transfer_id):
     """
@@ -556,7 +579,12 @@ def get_my_tickets():
 
     user_id = session['user_id']
     # Query all tickets where seller_id matches the user's ObjectId
-    tickets_cursor = tickets_collection.find({"seller_id": ObjectId(user_id)})
+    tickets_cursor = tickets_collection.find({
+        "$or": [
+            {"seller_id": ObjectId(user_id)},
+            {"buyer_id": ObjectId(user_id)}
+        ]
+    })
 
     # Convert the cursor into a list of dictionaries we can JSON-ify
     user_tickets = []
@@ -642,13 +670,8 @@ def purchase_ticket(ticket_id):
     }
 
     # Call the Paciolan API to initiate the ticket transfer
-    success, transfer_id, transfer_url = transfer_ticket_initialize(ticket, buyer_info)
-    if not success or not transfer_id or not transfer_url:
-        # Transfer initialization failed; revert ticket to available status
-        tickets_collection.update_one(
-            {"_id": ObjectId(ticket_id), "status": "pending"},
-            {"$set": {"status": "available"}, "$unset": {"buyer_id": ""}}
-        )
+    success, transfer_id, transfer_url, confirmationCd = transfer_ticket_initialize(ticket, buyer_info)
+    if not success or not transfer_id or not transfer_url or not confirmationCd:
         return jsonify({"error": "Ticket transfer initialization failed"}), 500
 
     # Store transfer details in the ticket document for later confirmation
@@ -656,7 +679,8 @@ def purchase_ticket(ticket_id):
         {"_id": ObjectId(ticket_id)},
         {"$set": {
             "transfer.transferId": transfer_id,
-            "transfer.url": transfer_url
+            "transfer.url": transfer_url,
+            "transfer.confirmationCd": confirmationCd
         }}
     )
     return jsonify({"message": "Ticket purchase initiated", "transferUrl": transfer_url}), 200
@@ -682,9 +706,8 @@ def ticket_purchase_intent(ticket_id):
     if str(ticket.get("buyer_id")) != user_id:
         return jsonify({"error": "Ticket is pending for a different user"}), 403
 
-    # Convert price from string to a float and calculate the amount in cents
+    # Calculate the amount in cents from the ticket price
     try:
-        # Ensure that the price is a valid number
         price = float(ticket.get("price"))
         if price < 0:
             raise ValueError("Price must be positive")
@@ -693,7 +716,7 @@ def ticket_purchase_intent(ticket_id):
         return jsonify({"error": "Invalid ticket price", "details": str(e)}), 500
 
     try:
-        # Create a PaymentIntent for the ticket price
+        # Create a Stripe PaymentIntent for the ticket price
         intent = stripe.PaymentIntent.create(
             amount=amount,
             currency=ticket.get("currency", "USD").lower(),
@@ -704,14 +727,11 @@ def ticket_purchase_intent(ticket_id):
             }
         )
     except Exception as e:
-        # If Stripe API call fails, release the ticket back to "available"
-        tickets_collection.update_one(
-            {"_id": ObjectId(ticket_id), "status": "pending"},
-            {"$set": {"status": "available"}, "$unset": {"buyer_id": ""}}
-        )
+        # **Removed automatic ticket release on Stripe error to allow retry attempts**
+        # If the Stripe API call fails, keep the ticket in pending state and return an error.
         return jsonify({"error": "Failed to create payment intent", "details": str(e)}), 500
 
-    # Store the PaymentIntent details in the ticket document for reference
+    # Store PaymentIntent details in the ticket document (for reference/auditing)
     tickets_collection.update_one(
         {"_id": ObjectId(ticket_id)},
         {"$set": {
@@ -721,6 +741,55 @@ def ticket_purchase_intent(ticket_id):
         }}
     )
     return jsonify({"client_secret": intent.client_secret}), 200
+
+
+# ------------------------------
+# Endpoint: DELETE /tickets/<ticket_id>/purchase
+# Cancel a pending ticket purchase and revert the ticket status to available.
+# ------------------------------
+@app.route('/flaskapi/tickets/<ticket_id>/purchase', methods=['DELETE'])
+def cancel_ticket_purchase(ticket_id):
+    """Cancel a pending ticket purchase and release the ticket back to available."""
+    # Ensure the user is authenticated
+    if 'user_id' not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    user_id = session['user_id']
+    ticket = tickets_collection.find_one({"_id": ObjectId(ticket_id)})
+    if not ticket:
+        return jsonify({"error": "Ticket not found"}), 404
+    # Ticket must be in pending status to be canceled
+    if ticket.get("status") != "pending":
+        return jsonify({"error": "Ticket is not pending"}), 400
+    # Only the user who reserved the ticket can cancel this purchase
+    if str(ticket.get("buyer_id")) != user_id:
+        return jsonify({"error": "Ticket is pending for a different user"}), 403
+
+    # Cancel the ticket transfer via the mock Paciolan API
+    confirmation_code = ticket.get("transfer", {}).get("confirmationCd")
+    if not confirmation_code:
+        return jsonify({"error": "No transfer information found for this ticket"}), 400
+    success = transfer_ticket_cancel(confirmation_code)
+    if not success:
+        return jsonify({"error": "Ticket transfer cancellation failed"}), 500
+
+    # Revert the ticket status to available and clear buyer/transfer fields
+    result = tickets_collection.update_one(
+        {"_id": ObjectId(ticket_id), "status": "pending"},
+        {"$set": {"status": "available"}, 
+         "$unset": {
+             "buyer_id": "",
+             "transfer.transferId": "",
+             "transfer.url": "",
+             "transfer.confirmationCd": ""
+         }}
+    )
+    if result.modified_count != 1:
+        # If the document was not updated, it may have been changed (e.g., purchase finalized concurrently)
+        return jsonify({"error": "Ticket purchase cancellation could not be finalized; ticket may have been updated"}), 409
+
+    return jsonify({"message": "Ticket purchase canceled"}), 200
+
 
 # ------------------------------
 # Endpoint: POST /tickets/<ticket_id>/purchase/confirm
