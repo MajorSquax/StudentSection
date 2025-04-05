@@ -17,7 +17,7 @@ function App() {
     axios
       .get("https://studentsection.xyz/flaskapi/users/me", { withCredentials: true })
       .then((res) => {
-        setUser(res.data.user);
+        setUser(res.data);
       })
       .catch((err) => {
         console.error(err);
@@ -32,8 +32,23 @@ function App() {
         <Routes>
           {user ? (
             <>
-              <Route path="/marketplace" element={<Marketplace />} />
-              <Route path="/uploadschedule" element={<UploadSchedule />} />
+              <Route
+                path="/marketplace"
+                element={
+                  user?.school !== "public" ? <Marketplace /> : <Navigate to="/" />
+                }
+              />
+              {/* Conditionally define the UploadSchedule route */}
+              <Route
+                path="/uploadschedule"
+                element={
+                  user?.role === "Admin" ? (
+                    <UploadSchedule />
+                  ) : (
+                    <Navigate to="/" />
+                  )
+                }
+              />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/postticket" element={<PostTicket />} />
               <Route path="/checkout/:ticketId" element={<CheckoutForm />} />
