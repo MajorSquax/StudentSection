@@ -7,7 +7,6 @@ Before getting started, ensure you have the following installed on your machine:
 - **Virtual Environment** (for Python dependencies)
 - **MongoDB:** Ensure IP address is whitelisted in Mongo
 - **Redis:** Set up Redis running on port 6379 on the localhost/127.0.0.1
-- **Mockoon API:** Set up Mockoon running on port 3003 on the localhost/127.0.0.1
 
   _note: Redis is Linux native, so this will need to be run in WSL on Windows_
 ## 🛠Installation & Setup
@@ -28,9 +27,25 @@ Before getting started, ensure you have the following installed on your machine:
    export SECRET_KEY=<TOKEN_FROM_ABOVE>
    ```
    Note: use _set_ if on Windows
-   
+4. **Create the mockoon.service file in your /etc/systemd/system/ folder. This will run Mockoon on port 3003**:
+   ```sh
+   [Unit]
+   Description=ROT13 demo service
+   After=network.target
+   StartLimitIntervalSec=0
+
+   [Service]
+   Type=simple
+   Restart=always
+   RestartSec=1
+   User=studentsection
+   ExecStart=mockoon-cli start --data /StudentSection/PaciolanMockAPIv1v2.json -p 3003
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
 5. **Start the Backend**:
-  Create the following file studentsection.service in your /lib/systemd/system/ folder
+  Create the following file studentsection.service in your /etc/systemd/system/ folder
    ```sh
    [Unit]
    Description=Gunicorn instance to serve studentsection flask app
@@ -53,11 +68,33 @@ Before getting started, ensure you have the following installed on your machine:
    ```sh
    npm ci
    ```
-3. **Start the Frontend**:
+3. **Build the React Frontend**:
    ```sh
-   npm start
+   npm run build
+   ```
+4. **Create the reactfrontend.service file under the folder /etc/systemd/system **:
+   ```sh
+   [Unit]
+   Description=Start the React Server over port 3000
+   After=network.target
+
+   [Service]
+   Type=simple
+   WorkingDirectory=/StudentSection/student-section-frontend
+   ExecStart=serve -s build
+   Restart=always
+   User=studentsection
+   StandardOutput=append:/var/log/student-section-frontend.log
+   StandardError=append:/var/log/student-section-frontend.err.log
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+5. **Start the React Static Server**:
+   ```sh
+   systemctl start reactfrontend
    ```
 ## Final Steps
-- Your **backend** should now be running on `http://127.0.0.1:5000`
+- Your **backend** should now be running on `https://studentsection.xyz/flaskapi`
 - Your **frontend** should be accessible at `http://localhost:3000`
 - Keep both processes running in **separate terminal windows** or **use a split terminal**
