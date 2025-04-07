@@ -27,7 +27,8 @@ Before getting started, ensure you have the following installed on your machine:
    export SECRET_KEY=<TOKEN_FROM_ABOVE>
    ```
    Note: use _set_ if on Windows
-4. **Create the mockoon.service file in your /etc/systemd/system/ folder. This will run Mockoon on port 3003**:
+   
+5. **Create the mockoon.service file in your /etc/systemd/system/ folder. This will run Mockoon on port 3003**:
    ```sh
    [Unit]
    Description=ROT13 demo service
@@ -44,7 +45,7 @@ Before getting started, ensure you have the following installed on your machine:
    [Install]
    WantedBy=multi-user.target
    ```
-5. **Start the Backend**:
+6. **Start the Backend**:
   Create the following file studentsection.service in your /etc/systemd/system/ folder
    ```sh
    [Unit]
