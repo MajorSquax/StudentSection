@@ -1,5 +1,7 @@
 # Setting Up Student Section
 
+_Note: This is to set up the public hosted version project for https://github.com/MitchellHansbauer/StudentSection_
+
 ## Prerequisites
 Before getting started, ensure you have the following installed on your machine:
 - **Python** (latest version recommended)
@@ -95,7 +97,6 @@ Before getting started, ensure you have the following installed on your machine:
    ```sh
    systemctl start reactfrontend
    ```
-## Final Steps
+## Conclusion
 - Your **backend** should now be running on `https://studentsection.xyz/flaskapi`
 - Your **frontend** should be accessible at `http://localhost:3000`
-- Keep both processes running in **separate terminal windows** or **use a split terminal**
